@@ -1,0 +1,164 @@
+<html>
+	<head>
+		<script src="https://code.jquery.com/jquery-3.3.1.js"
+			integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  			crossorigin="anonymous"></script>
+ 	 	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+	</head>
+	<body>
+		<p>Paste data here:</p>
+    	<textarea name="excel_data" style="width:250px;height:150px;"></textarea><br>
+    	<input type="button" onclick="javascript:generateTable()" value="Genereate Table"/>
+		<br><br>
+    	<p>Table data will appear below</p>
+		<hr>
+		<div id="excel_table"></div>
+		<div id="grapher" style="width:100%; height: 100%"></div>
+	</body>
+	<script type="text/javascript">
+
+		$(document).ready(function(){
+    		$(this).scrollTop(0);
+		});
+
+
+		let excel_table = new Array();
+
+		function getCol(matrix, col){
+       		var column = [];
+       		for(var i=0; i<matrix.length; i++){
+          		column.push(matrix[i][col]);
+       		}
+       		return column;
+       	}
+
+       	function calculate_xbar(array){
+       		var total = 0;
+       		for (var i in array) {
+       			total += array[i];
+       		}
+       		return total/array.length;
+       	}
+
+       	function find_bounds(array) {
+       		var high = Number.NEGATIVE_INFINITY;
+       		var low = Number.POSITIVE_INFINITY;
+
+       		for (var i in array) {
+       			var c = array[i];
+  				if (c > high) {
+  					high = c;
+  				}
+  				if (c < low) {
+  					low = c;
+  				}
+			}
+
+			return [high, low];
+       	}
+
+       	function calculate_STD(array) {
+       		var xbar = calculate_xbar(array);
+       		var sum_dif = 0;
+       		for (var i in array) {
+       			var c = array[i];
+       			sum_dif += (array[i] - xbar) * (array[i] - xbar);
+       		}
+       		return Math.sqrt(sum_dif/array.length);
+       	}
+
+		function generateTable() {
+    		var data = $('textarea[name=excel_data]').val();
+    		console.log(data);
+
+			var rows = data.split("\n");
+
+			var table = $('<table />');
+
+			for(var y in rows) {
+				excel_table.push(new Array());
+    			var cells = rows[y].split("\t");
+    			var row = $('<tr />');
+    			for(var x in cells) {
+        			row.append('<td>'+cells[x]+'</td>');
+        			excel_table[excel_table.length-1].push(parseInt(cells[x]));
+    			}
+    			table.append(row);
+			}
+
+
+			$('#excel_table').html(table);
+
+			var points = {
+				mode: 'markers', 
+				type: 'scatter',
+				x: getCol(excel_table, 1),
+				y: getCol(excel_table, 0),
+				name: 'Data Points'
+			};
+
+			var bounds = find_bounds(getCol(excel_table, 1));
+			var xb = calculate_xbar(getCol(excel_table, 0));
+			var STD = calculate_STD(getCol(excel_table, 0));
+
+			console.log({bounds, xb, STD});
+
+			var xbar = {
+				type: 'scatter',
+				x: [bounds[0] + 50, bounds[1] - 50],
+  				y: [xb, xb],
+  				mode: 'lines',
+  				name: 'X Bar',
+  				showlegend: true,
+  				line: {
+  					dash: 'dashdot',
+    				color: 'orange',
+    				width: 2
+  				}
+			}
+
+			var plots = [points, xbar];
+
+			var i = 1;
+			for (i; i <= 3; i++) {
+				var positive_std = {
+					type: 'scatter',
+					x: [bounds[0] + 50, bounds[1]-50],
+					y: [xb + (i * STD), xb + (i * STD)],
+					mode: 'lines',
+					name: i + ' Standard Deviation',
+					showlegend: true,
+					line: {
+						dash: 'dot',
+						color: 'red',
+						width: 2
+					}
+				}
+				plots.push(positive_std);
+
+				var negative_std = {
+					type: 'scatter',
+					x: [bounds[0] + 50, bounds[1]-50],
+					y: [xb - (i * STD), xb - (i * STD)],
+					mode: 'lines',
+					name: '-' + i + ' Standard Deviation',
+					showlegend: true,
+					line: {
+						dash: 'dot',
+						color: 'red',
+						width: 2
+					}
+				}
+				plots.push(negative_std);
+			}
+
+			console.log({plots});
+
+			Grapher = document.getElementById('grapher');
+			Plotly.newPlot(Grapher, 
+				plots, 
+				{ margin: { t: 10 }, xaxis: { title: 'Time' }, yaxis: { title: 'X'} } 
+			);
+		}
+	</script>
+</html>
