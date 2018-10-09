@@ -5,6 +5,16 @@
 			integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
   			crossorigin="anonymous"></script>
  	 	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+ 	 	<style>
+ 	 		td {
+ 	 			padding-left:5em
+ 	 		}
+ 	 		#grapher {
+ 	 			width: 100%;
+ 	 			height: 100%;
+ 	 			position: absolute;
+ 	 		}
+ 	 	</style>
 	</head>
 	<body>
 		<p>Paste data here:</p>
@@ -14,7 +24,7 @@
     	<p>Table data will appear below</p>
 		<hr>
 		<div id="excel_table"></div>
-		<div id="grapher" style="width:100%; height: 100%"></div>
+		<div id="grapher"></div>
 	</body>
 	<script type="text/javascript">
 
@@ -102,8 +112,6 @@
 			var xb = calculate_xbar(getCol(excel_table, 0));
 			var STD = calculate_STD(getCol(excel_table, 0));
 
-			console.log({bounds, xb, STD});
-
 			var xbar = {
 				type: 'scatter',
 				x: [bounds[0] + 50, bounds[1] - 50],
@@ -158,7 +166,7 @@
 			Grapher = document.getElementById('grapher');
 			Plotly.newPlot(Grapher, 
 				plots, 
-				{ margin: { t: 10 }, xaxis: { title: 'Time' }, yaxis: { title: 'X'} } 
+				{ margin: { t: 0 }, xaxis: { title: 'Time' }, yaxis: { title: 'X'} } 
 			);
 		}
 	</script>
